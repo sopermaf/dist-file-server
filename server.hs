@@ -12,7 +12,8 @@ loop sock = do
    loop sock
   where
    body h = do
-       hPutStr h msg
+       s <- readFile "server.hs"
+       hPutStr h s
        hFlush h
        hClose h
        
