@@ -1,23 +1,35 @@
 import socket               # Import socket module
 
-s = socket.socket()         # Create a socket object
+sock = socket.socket()         # Create a socket object
 host = socket.gethostname() # Get local machine name
 port = 12345                 # Reserve a port for your service.
-s.bind((host, port))        # Bind to the port
-f = open('grade1_NEW.png','wb')
+sock.bind((host, port))        # Bind to the port
+
+
+def downloadFile (connection, fileName):
+    f = open(fileName,'wb')     #file to be stored here
+    incoming = connection.recv(1024)
+    while (incoming):
+        f.write(incoming)
+        incoming = connection.recv(1024)
+    f.close()
+    print ("File Uploaded")
+    return 0;
+   
+def uploadFile (connection, fileName):
+    f = open(fileName,'rb')     #file to be stored here
+    out = f.read(1024)
+    while (out):
+        connection.send(out)
+        out = f.read(1024)
+    f.close()
+    print ("File Uploaded")
+    return 0;
 
 print ("Waiting for connections..")
-s.listen()                 # Now wait for client connection.
+sock.listen()                 # Now wait for client connection.
 while True:
-    c, addr = s.accept()     # Establish connection with client.
-    print ('Got connection from', addr)
-    print ("Receiving...")
-    l = c.recv(1024)
-    while (l):
-        print ("Receiving...")
-        f.write(l)
-        l = c.recv(1024)
-    f.close()
-    print ("Done Receiving")
-    c.send('Thank you for connecting')
-    c.close()                # Close the connection
+    conn, addr = sock.accept()     # Establish connection with client.
+    downloadFile(conn, "recv_test.txt")
+    uploadFile(conn, "recv_test.txt")
+    conn.close()                # Close the connection
