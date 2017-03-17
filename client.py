@@ -26,7 +26,7 @@ def downloadFile(fileName, sock):
     print ("File Downloaded")
 
     
-choice = "DOWNLOAD"
+choice = "UPLOAD"
 
 sock.connect((host, port))
 sock.send(choice.encode())
