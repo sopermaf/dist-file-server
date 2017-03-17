@@ -28,8 +28,13 @@ def uploadFile (connection, fileName):
 
 print ("Waiting for connections..")
 sock.listen()                 # Now wait for client connection.
-while True:
-    conn, addr = sock.accept()     # Establish connection with client.
-    downloadFile(conn, "recv_test.txt")
-    uploadFile(conn, "recv_test.txt")
-    conn.close()                # Close the connection
+
+#while True:
+conn, addr = sock.accept()     # Establish connection with client.
+choice = conn.recv(1024)
+if choice == "files/UPLOAD":
+    downloadFile(conn, "serv_recv_test.txt")
+elif choice == "files/DOWNLOAD":
+    uploadFile(conn, "test.txt")
+    
+conn.close()                # Close the connection

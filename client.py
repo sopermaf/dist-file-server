@@ -25,9 +25,17 @@ def downloadFile(fileName, sock):
     f.close()
     print ("File Downloaded")
 
+    
+choice = "DOWNLOAD"
+
 sock.connect((host, port))
-uploadFile("test.txt", sock)
-downloadFile("recv_test1.txt", sock)
+sock.send(choice.encode())
+
+if choice == "UPLOAD":
+    uploadFile("files/test.txt", sock)
+elif choice == "DOWNLOAD":
+    downloadFile("files/client_recv_test.txt", sock)
+
 sock.close                     # Close the socket when done
 
 print("Client Terminated")
