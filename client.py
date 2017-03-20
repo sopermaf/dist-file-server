@@ -4,9 +4,6 @@ sock = socket.socket()         # Create a socket object
 host = socket.gethostname() # Get local machine name
 port = 12345                 # Reserve a port for your service.
 
-
-
-
 def uploadFile(fileName, sock): 
     f = open(fileName,'rb')
     out = f.read(1024)
@@ -25,17 +22,15 @@ def downloadFile(fileName, sock):
     f.close()
     print ("File Downloaded")
 
-    
-choice = "UPLOAD"
-
+#communicate with file_server
+choice = "DOWNLOAD test.txt"   #'DOWNLAD' or 'UPLOAD' and filename and extension
 sock.connect((host, port))
 sock.send(choice.encode())
 
-if choice == "UPLOAD":
-    uploadFile("files/test.txt", sock)
-elif choice == "DOWNLOAD":
-    downloadFile("files/client_recv_test.txt", sock)
+#perform the requested operation
+#uploadFile("files/test.txt", sock)
+downloadFile("client_files/test.txt", sock)
 
-sock.close                     # Close the socket when done
+sock.close()                     # Close the socket when done
 
 print("Client Terminated")

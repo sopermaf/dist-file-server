@@ -26,17 +26,35 @@ def uploadFile (connection, fileName):
     print ("File Uploaded")
     return 0;
 
-print ("Waiting for connections..")
+def parseRequest (requestFileName, requestOperation, connection):
+    requestFileName = "server_files/" + requestFileName    #add directory path to file request
+    if requestOperation == "UPLOAD":
+        downloadFile(connection, "files/" + requestFileName)
+    elif requestOperation == "DOWNLOAD":
+        uploadFile(connection, requestFileName)
+    else :
+        print ("ERROR: NO CHOICE MATCH - ..", choice, "..")
+    
+print ("Waiting for connections...")
 sock.listen()                 # Now wait for client connection.
 
 while True:
     conn, addr = sock.accept()     # Establish connection with client.
-    choice = conn.recv(1024).decode()
-    if choice == "UPLOAD":
-        downloadFile(conn, "files/serv_recv_test.txt")
-    elif choice == "DOWNLOAD":
-        uploadFile(conn, "files/test.txt")
-    else :
-        print ("ERROR: NO CHOICE MATCH - ..", choice, "..")
-        
+    
+    print("New Connection...")
+    choice = conn.recv(1024).decode()   #FORMAT: "OPERATION example.txt"
+    choice = choice.split()
+    file_operation = choice[0]
+    file_name = choice[1]
+    #print("**" + file_operation + "**")
+    #print("**" + file_name + "**")
+    parseRequest(file_name, file_operation, conn)
+    
     conn.close()                # Close the connection
+    
+    
+    
+    
+    
+    
+    
