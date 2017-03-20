@@ -1,4 +1,5 @@
 import socket               # Import socket module
+import os
 
 sock = socket.socket()         # Create a socket object
 host = socket.gethostname() # Get local machine name
@@ -34,7 +35,16 @@ def parseRequest (requestFileName, requestOperation, connection):
         uploadFile(connection, requestFileName)
     else :
         print ("ERROR: NO CHOICE MATCH - ..", choice, "..")
+
+def stringFileList (directory):
+    files = os.listdir(directory)
+    file_string = "Server File List:\n"
     
+    for file in files:
+        file_string = file_string + "-" + str(file) + "\n"
+        
+    return file_string
+        
 print ("Waiting for connections...")
 sock.listen()                 # Now wait for client connection.
 
