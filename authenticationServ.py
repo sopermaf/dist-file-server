@@ -3,18 +3,20 @@ import socket
 #function definitions
 
 #setup socket
-PORT = 8004
-IP_ADDR = 'localhost'
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind((IP_ADDR, PORT))
-sock.listen(1)
+sock = socket.socket()         # Create a socket object
+host = socket.gethostname()     # Get local machine name
+port = 8004                 # Reserve a port for your service.
+sock.bind((host, port))        # Bind to the port
+sock.listen()
 
-AUTH_PASSWORD = "PASSWORD"
+AUTH_PASSWORD = "AUTHENTICATE"
+
+
 
 #main
 while True:
     print("waiting for connection...")
-    conn, new_addr = sock.accept()
+    conn, addr = sock.accept()
     
     #gives user the password for authentication
     print("authentication confirmed...\n")

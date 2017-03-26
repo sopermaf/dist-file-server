@@ -53,21 +53,14 @@ host = socket.gethostname() # Get local machine name
 port = 12345                 # Reserve a port for your service.
 sock.bind((host, port))        # Bind to the port
 
-#create the threads
-# threads = []
-# NUM_THREADS = 10
-# for i in range(0, NUM_THREADS):
-    # threads.append(myThread())
-    
-# start the threads
-# for thread in threads:
-    # thread.start() 
  
 #**********MAIN*********** 
-print ("Waiting for connections...")
+
 sock.listen()                 # Now wait for client connection.
 
 while True:
+    print ("Waiting for connections...")
+    
     # Establish connection with client.
     conn, addr = sock.accept()     
     print("New Connection...")
