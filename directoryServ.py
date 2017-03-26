@@ -1,10 +1,5 @@
 import socket
 
-#ports of fileServers
-fileServer1_port = 8001
-fileServer2_port = 8002
-fileServer3_port = 8003
-
 #setup server socket
 sock = socket.socket()         # Create a socket object
 host = socket.gethostname()     # Get local machine name
@@ -44,10 +39,30 @@ def getFileList():
         filelist += file_sock.recv(1024).decode()
         
     return filelist
+
+#returns files of specific fileServer
+def getFileListSpecific(fileServerNum):
+    filelist = ""
+    listCommand = "LIST"
+    
+    file_socks[fileServerNum].send(listCommand.encode())
+    return file_socks[fileServerNum].recv(1024).decode()
     
 #returns the portNumber of the fileServer containing a specified file
-def getFilePort(fileName):
-    return 8001
+def getFilePort(fileName): 
+    #build the list
+    fileList = []
+    for i in range(0, len(file_socks)):
+        singleServerList = getFileListSpecific(i)
+        singleServerList = singleServerList.split()
+        fileList.append(singleServerList)
+    
+    #find the file
+    for x in range(0, len(fileList)):
+        if fileName in fileList[x]:
+            return 8000 + x + 1
+    
+    return -1
         
     
     
@@ -60,4 +75,26 @@ while True:
     #List the files
     conn.send(getFileList().encode())
     
+    #recieve query
+    fileWanted = conn.recv(1024).decode()
+    
+    #send file server number
+    portRequired = getFilePort(fileWanted)
+    
+    if portRequired is -1:
+        print("Error occurred, closing connection..")
+        conn.close()
+        continue
+    
+    conn.send(str(portRequired).encode())
+    
     conn.close()
+    
+    
+    
+    
+    
+    
+    
+    
+    

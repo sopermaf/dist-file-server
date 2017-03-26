@@ -28,49 +28,56 @@ def downloadFile(fileName, sock):
     print ("File Downloaded")
 
 #AUTHENTICATION SERVER COMMUNICATION
-auth_sock = socket.socket()         # Create a socket object
-auth_sock.connect((host, auth_port))     #connect to the auth server
-authentication = auth_sock.recv(1024).decode()   #get password from auth server
+auth_sock = socket.socket()        
+auth_sock.connect((host, auth_port))   
+authentication = auth_sock.recv(1024).decode()     #get password from auth server
 auth_sock.close()
 
 #DIRECTORY SERVER COMMUNICATION
-directory_sock = socket.socket()         # Create a socket object
-directory_sock.connect((host, directory_port))     #connect to the auth server
+directory_sock = socket.socket()                    
+directory_sock.connect((host, directory_port))     #connect to the directory server
+
 direc_files = directory_sock.recv(1024).decode()   #get password from auth server
-
 print(direc_files)
+fileName = input("Enter File Wanted(-1 to skip for uploads): ")
 
+if fileName is not "-1":
+    directory_sock.send(fileName.encode())
+    port_required = directory_sock.recv(1024).decode()
+    file_port = int(port_required)
+
+print("Port with file:", port_required)
 directory_sock.close()
 
 #FILE SERVER COMMUNICATION
-# file_sock = socket.socket()
-# file_sock.connect((host, file_port))     #change connection to file server
+file_sock = socket.socket()
+file_sock.connect((host, file_port))     #change connection to file server
 
-# file_sock.send(authentication.encode())
-# auth_confirmation = file_sock.recv(1024).decode()
-# print(auth_confirmation)         
+file_sock.send(authentication.encode())
+auth_confirmation = file_sock.recv(1024).decode()
+print(auth_confirmation)         
 
-# if "509" not in auth_confirmation:          #autho approved
+if "509" not in auth_confirmation:          #autho approved
     
-    # request_complete = False
-    # while not request_complete:             #so user can keep listing the files
-        # choice = input("ENTER CHOICE: ")
-        # file_sock.send(choice.encode())
-        # choice = choice.split()
-        # choice_type = choice[0]
+    request_complete = False
+    while not request_complete:             #so user can keep listing the files
+        choice = input("ENTER CHOICE: ")
+        file_sock.send(choice.encode())
+        choice = choice.split()
+        choice_type = choice[0]
         
-        # if choice_type == "DOWNLOAD":
-            # downloadFile(file_extension + choice[1], file_sock)
-            # request_complete = True
-        # elif choice_type == "UPLOAD":
-            # uploadFile(file_extension + choice[1], file_sock)
-            # request_complete = True
-        # elif choice_type == "LIST":
-            # files_available = file_sock.recv(2048).decode()
-            # print(files_available)
-        # else:
-            # print("ERROR: REQUEST DIDN'T MATCH PATTERN...")
-            # break
+        if choice_type == "DOWNLOAD":
+            downloadFile(file_extension + choice[1], file_sock)
+            request_complete = True
+        elif choice_type == "UPLOAD":
+            uploadFile(file_extension + choice[1], file_sock)
+            request_complete = True
+        elif choice_type == "LIST":
+            files_available = file_sock.recv(2048).decode()
+            print(files_available)
+        else:
+            print("ERROR: REQUEST DIDN'T MATCH PATTERN...")
+            break
     
-# file_sock.close()                     # Close the socket when done
+file_sock.close()                     # Close the socket when done
 print("Client Terminated")
