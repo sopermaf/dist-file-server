@@ -63,11 +63,6 @@ def isAuthenticated(password):
         return True
     
     return False
- 
-sock = socket.socket()         # Create a socket object
-host = socket.gethostname() # Get local machine name
-port = 8001                # Reserve a port for your service.
-sock.bind((host, port))        # Bind to the port
 
 #setup file directory
 file_range = ["1", "2", "3"]
@@ -77,10 +72,17 @@ while file_directory_choice not in file_range:
 
 file_directory = "server" + file_directory_choice + "_files/"
 print("FILE SERVER DIRECTORY:", file_directory)
-    
+
+sock = socket.socket()         # Create a socket object
+host = socket.gethostname() # Get local machine name
+port = 8000 + int(file_directory_choice)  # Reserve a port for your service.
+sock.bind((host, port))        # Bind to the port
+
+print("PORT:", port)
+
 #THREAD POOL CREATION
 threads = []
-NUM_THREADS = 10
+NUM_THREADS = 20
 for i in range(0, NUM_THREADS):
     threads.append(myThread())
     
@@ -91,7 +93,6 @@ for thread in threads:
 def newClient(conn):
     #receive authentication
     authentication = conn.recv(1024).decode()   #FORMAT: "OPERATION example.txt"
-    
     
     if not isAuthenticated(authentication):
         msg = "509: No Authentication.."
