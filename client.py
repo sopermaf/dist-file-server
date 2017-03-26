@@ -3,7 +3,7 @@ import os
 
 #setup socket
 host = socket.gethostname()     # Get local machine name
-file_port = 12345                                   # Correct Port Number Required
+file_port = 8001                                   # Correct Port Number Required
 auth_port = 8004
 
 file_extension = "client_files/"
@@ -43,20 +43,26 @@ auth_confirmation = file_sock.recv(1024).decode()
 print(auth_confirmation)         
 
 if "509" not in auth_confirmation:          #autho approved
-    choice = input("ENTER CHOICE: ")
     
-    file_sock.send(choice.encode())
-    
-    choice = choice.split()
-    choice_type = choice[0]
-    
-    if choice_type == "DOWNLOAD":
-        downloadFile(file_extension + choice[1], file_sock)
-    elif choice_type == "UPLOAD":
-        uploadFile(file_extension + choice[1], file_sock)
-    elif choice_type == "LIST":
-        files_available = file_sock.recv(2048).decode()
-        print(files_available)
+    request_complete = False
+    while not request_complete:             #so user can keep listing the files
+        choice = input("ENTER CHOICE: ")
+        file_sock.send(choice.encode())
+        choice = choice.split()
+        choice_type = choice[0]
+        
+        if choice_type == "DOWNLOAD":
+            downloadFile(file_extension + choice[1], file_sock)
+            request_complete = True
+        elif choice_type == "UPLOAD":
+            uploadFile(file_extension + choice[1], file_sock)
+            request_complete = True
+        elif choice_type == "LIST":
+            files_available = file_sock.recv(2048).decode()
+            print(files_available)
+        else:
+            print("ERROR: REQUEST DIDN'T MATCH PATTERN...")
+            break
     
 file_sock.close()                     # Close the socket when done
 print("Client Terminated")
