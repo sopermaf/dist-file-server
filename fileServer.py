@@ -1,11 +1,17 @@
 import socket               # Import socket module
 import os
+import threading
 
-sock = socket.socket()         # Create a socket object
-host = socket.gethostname() # Get local machine name
-port = 12345                 # Reserve a port for your service.
-sock.bind((host, port))        # Bind to the port
+file_directory = "server_files/"
+AUTHO_ID = "AUTHENTICATE"
 
+class myThread (threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+    
+    def run(self):
+        while True:
+            print("running..")
 
 def downloadFile (connection, fileName):
     f = open(fileName,'wb')     #file to be stored here
@@ -26,16 +32,7 @@ def uploadFile (connection, fileName):
     f.close()
     print ("File Uploaded")
     return 0;
-
-def parseRequest (requestFileName, requestOperation, connection):
-    requestFileName = "server_files/" + requestFileName    #add directory path to file request
-    if requestOperation == "UPLOAD":
-        downloadFile(connection, "files/" + requestFileName)
-    elif requestOperation == "DOWNLOAD":
-        uploadFile(connection, requestFileName)
-    else :
-        print ("ERROR: NO CHOICE MATCH - ..", choice, "..")
-
+    
 def stringFileList (directory):
     files = os.listdir(directory)
     file_string = "Server File List:\n"
@@ -44,24 +41,66 @@ def stringFileList (directory):
         file_string = file_string + "-" + str(file) + "\n"
         
     return file_string
-        
+
+def isAuthenticated(password):
+    if password == AUTHO_ID:
+        return True
+    
+    return False
+ 
+sock = socket.socket()         # Create a socket object
+host = socket.gethostname() # Get local machine name
+port = 12345                 # Reserve a port for your service.
+sock.bind((host, port))        # Bind to the port
+
+#create the threads
+# threads = []
+# NUM_THREADS = 10
+# for i in range(0, NUM_THREADS):
+    # threads.append(myThread())
+    
+# start the threads
+# for thread in threads:
+    # thread.start() 
+ 
+#**********MAIN*********** 
 print ("Waiting for connections...")
 sock.listen()                 # Now wait for client connection.
 
 while True:
-    conn, addr = sock.accept()     # Establish connection with client.
-    
+    # Establish connection with client.
+    conn, addr = sock.accept()     
     print("New Connection...")
-    choice = conn.recv(1024).decode()   #FORMAT: "OPERATION example.txt"
-    choice = choice.split()
-    file_operation = choice[0]
-    file_name = choice[1]
-    #print("**" + file_operation + "**")
-    #print("**" + file_name + "**")
-    parseRequest(file_name, file_operation, conn)
+    
+    #receive authentication
+    authentication = conn.recv(1024).decode()   #FORMAT: "OPERATION example.txt"
+    
+    if not isAuthenticated(authentication):
+        msg = "509: No Authentication.."
+        conn.send(msg.encode())                          #inform client of error
+        conn.close()
+        print("Connection Closed..")
+        continue                                         #move to next iteration of loop and get new connection
+    else:
+        msg = "Authentication Confirmed..\nSend Request(UPLOAD, DOWNLOAD) and filename with extension..."
+        conn.send(msg.encode())
+    
+    
+    #parse choice and make do request       "UPLOAD/DOWNLOAD test.txt"
+    indata = conn.recv(1024).decode()
+    indata = indata.split()
+    requestOperation = indata[0]
+    requestFileName = indata[1]             #careful for array index when listing FILES!
+    
+    if requestOperation == "UPLOAD":
+        downloadFile(conn, file_directory + requestFileName)      #user upload = fileServer download
+    elif requestOperation == "DOWNLOAD":
+        uploadFile(conn, file_directory + requestFileName)  
+    else :
+        print ("ERROR: NO CHOICE MATCH - ..", choice, "..")
     
     conn.close()                # Close the connection
-    
+    print("connection closed...\n")
     
     
     

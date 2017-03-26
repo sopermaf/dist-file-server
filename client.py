@@ -1,8 +1,13 @@
 import socket               # Import socket module
+import os
 
+#setup socket
 sock = socket.socket()         # Create a socket object
-host = socket.gethostname() # Get local machine name
-port = 12345                 # Reserve a port for your service.
+host = socket.gethostname()     # Get local machine name
+port = 12345                                   # Correct Port Number Required
+sock.connect((host, port))
+
+file_extension = "client_files/"
 
 def uploadFile(fileName, sock): 
     f = open(fileName,'rb')
@@ -22,15 +27,29 @@ def downloadFile(fileName, sock):
     f.close()
     print ("File Downloaded")
 
-#communicate with file_server
-choice = "DOWNLOAD test.txt"   #'DOWNLAD' or 'UPLOAD' and filename and extension
-sock.connect((host, port))
-sock.send(choice.encode())
+#AUTHENTICATION SERVER COMMUNICATION
+authentication = "AUTHENTICATE"
 
-#perform the requested operation
-#uploadFile("files/test.txt", sock)
-downloadFile("client_files/test.txt", sock)
+#FILE SERVER COMMUNICATION
+sock.send(authentication.encode())
+auth_confirmation = sock.recv(1024).decode()
+print(auth_confirmation)         
 
+if "509" not in auth_confirmation:          #autho approved
+    choice = input("ENTER CHOICE: ")
+    
+    sock.send(choice.encode())
+    
+    choice = choice.split()
+    choice_type = choice[0]
+    
+    if choice_type == "DOWNLOAD":
+        downloadFile(file_extension + choice[1], sock)
+    elif choice_type == "UPLOAD":
+        uploadFile(file_extension + choice[1], sock)
+    
+
+
+    
 sock.close()                     # Close the socket when done
-
 print("Client Terminated")
