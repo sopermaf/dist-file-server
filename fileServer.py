@@ -33,8 +33,8 @@ def uploadFile (connection, fileName):
     print ("File Uploaded")
     return 0;
     
-def stringFileList (directory):
-    files = os.listdir(directory)
+def stringFileList ():
+    files = os.listdir(file_directory)
     file_string = "Server File List:\n"
     
     for file in files:
@@ -75,7 +75,7 @@ while True:
         print("Connection Closed..")
         continue                                         #move to next iteration of loop and get new connection
     else:
-        msg = "Authentication Confirmed..\nSend Request(UPLOAD, DOWNLOAD) and filename with extension..."
+        msg = "Authentication Confirmed..\nSend Request(UPLOAD, DOWNLOAD, LIST) and filename with extension..."
         conn.send(msg.encode())
     
     
@@ -83,12 +83,14 @@ while True:
     indata = conn.recv(1024).decode()
     indata = indata.split()
     requestOperation = indata[0]
-    requestFileName = indata[1]             #careful for array index when listing FILES!
     
     if requestOperation == "UPLOAD":
-        downloadFile(conn, file_directory + requestFileName)      #user upload = fileServer download
+        downloadFile(conn, file_directory + indata[1])      #user upload = fileServer download
     elif requestOperation == "DOWNLOAD":
-        uploadFile(conn, file_directory + requestFileName)  
+        uploadFile(conn, file_directory + indata[1])
+    elif requestOperation == "LIST":
+        files = stringFileList() 
+        conn.send(files.encode())
     else :
         print ("ERROR: NO CHOICE MATCH - ..", choice, "..")
     

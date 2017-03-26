@@ -32,6 +32,8 @@ auth_sock.connect((host, auth_port))     #connect to the auth server
 authentication = auth_sock.recv(1024).decode()   #get password from auth server
 auth_sock.close()
 
+#DIRECTORY SERVER COMMUNICATION
+
 #FILE SERVER COMMUNICATION
 file_sock = socket.socket()
 file_sock.connect((host, file_port))     #change connection to file server
@@ -52,7 +54,9 @@ if "509" not in auth_confirmation:          #autho approved
         downloadFile(file_extension + choice[1], file_sock)
     elif choice_type == "UPLOAD":
         uploadFile(file_extension + choice[1], file_sock)
-    
+    elif choice_type == "LIST":
+        files_available = file_sock.recv(2048).decode()
+        print(files_available)
     
 file_sock.close()                     # Close the socket when done
 print("Client Terminated")
