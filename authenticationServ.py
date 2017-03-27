@@ -26,7 +26,6 @@ while True:
     conn, addr = sock.accept()
     
     #gives user the password for authentication
-    
     newUser = conn.recv(1024).decode()
     
     if authentication(newUser):

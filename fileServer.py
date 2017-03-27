@@ -36,7 +36,6 @@ def downloadFile (connection, fileName):
         f.write(incoming)
         incoming = connection.recv(1024)
     f.close()
-    print ("File Uploaded")
     return 0;
    
 def uploadFile (connection, fileName):
@@ -46,7 +45,6 @@ def uploadFile (connection, fileName):
         connection.send(out)
         out = f.read(1024)
     f.close()
-    print ("File Uploaded")
     return 0;
     
 def stringFileList ():
@@ -106,21 +104,26 @@ def newClient(conn):
         request_complete = False
         while not request_complete:
             #parse choice and make do request       "UPLOAD/DOWNLOAD test.txt"
+            print("NEW REQUEST\n")
             indata = conn.recv(1024).decode()
             indata = indata.split()
             requestOperation = indata[0]
             
             if requestOperation == "UPLOAD":
                 downloadFile(conn, file_directory + indata[1])      #user upload = fileServer download
+                print("FILE DOWNLOADED")
                 request_complete = True
             elif requestOperation == "DOWNLOAD":
                 uploadFile(conn, file_directory + indata[1])
+                print("FILE UPLOADED")
                 request_complete = True
             elif requestOperation == "LIST":
                 files = stringFileList() 
                 conn.send(files.encode())
+                print("FILES LISTED")
             else :
                 print ("ERROR: NO CHOICE MATCH - ..", choice, "..")
+                request_complete = True
                 break   #to ensure it always breaks
     
     conn.close()                # Close the connection
