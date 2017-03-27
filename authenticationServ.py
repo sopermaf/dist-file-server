@@ -9,15 +9,31 @@ port = 8004                 # Reserve a port for your service.
 sock.bind((host, port))        # Bind to the port
 sock.listen()
 
-AUTH_PASSWORD = "AUTHENTICATE"
+AUTH_TOKEN = "AUTHENTICATE"
+FAILURE = "NOT_AUTHENTICATED"
+usernames = ["ferdia", "john", "stephen"]
 
-
+def authentication(newUser):
+    if newUser in usernames:
+        return True
+        
+    return False
+    
 
 #main
 while True:
-    print("waiting for connection...")
+    print("Waiting for connection...")
     conn, addr = sock.accept()
     
     #gives user the password for authentication
-    print("authentication confirmed...\n")
-    conn.send(AUTH_PASSWORD.encode());
+    
+    newUser = conn.recv(1024).decode()
+    
+    if authentication(newUser):
+        print("Authentication confirmed...\n")
+        conn.send(AUTH_TOKEN.encode());
+    else:
+        print("Authentication failed...\n")
+        conn.send(FAILURE.encode());
+        
+    conn.close()

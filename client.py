@@ -30,7 +30,12 @@ def downloadFile(fileName, sock):
 #AUTHENTICATION SERVER COMMUNICATION
 auth_sock = socket.socket()        
 auth_sock.connect((host, auth_port))   
+
+username = input("Enter Username: ")
+auth_sock.send(username.encode())
 authentication = auth_sock.recv(1024).decode()     #get password from auth server
+print("Authentication Status:", authentication)
+
 auth_sock.close()
 
 #DIRECTORY SERVER COMMUNICATION
