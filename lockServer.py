@@ -1,5 +1,4 @@
 import socket
-import thread
 import time
 
 #setup server socket
@@ -7,33 +6,31 @@ sock = socket.socket()         # Create a socket object
 host = socket.gethostname()     # Get local machine name
 self_port = 8012                # Reserve a port for your service.
 sock.bind((host, self_port))        # Bind to the port
-sock.listen()
+sock.listen(1)
 
 #variables
-success = "APPROVED"
-failure = "ACCESS_DENIED"
+success = "ACCESS APPROVED"
+failure = "ACCESS DENIED: TRY AGAIN LATER"
+
+read_write = "R/W"
+read_only = "READ"
+UPLOAD = "UPLOAD"
+DOWNLOAD = "DOWNLOAD"
 
 locked_files = []
 locked_by = []
 
-#not THREAD SAFE
-def isLocked(filename, user):
-
-    if filename in locked_files:    #check if file locked
-        loc = locked_files.index(filename)
-        if locked_by[loc] == user:
-            return False    #CASE: FILE WAS LOCKED BY THIS USER, ALLOW ACCESS
-        else:
-            return True         #case: FILE LOCKED BY DIFFERENT USER
- 
-    return False    #case: FILE NOT LOCKED
+#says if file is locked
+def isLocked(filename):
+    if filename in locked_files:
+        return True
+    return False
     
 #removes lock after time elapsed
-def manageAccess():
-    while True:
-        pass
+def timeoutLock():
+    pass
 
-thread.start_new_thread(manageAccess, ())
+#thread.start_new_thread(timeoutLock, ())
     
 #******main*********
 while True:
@@ -43,23 +40,46 @@ while True:
    
     #get info from user
     inData = conn.recv(1024).decode()
-    inData = inData.split()         #[READ/RW ACCESS, FILENAME, USERNAME]
-    access = inData[0]
+    inData = inData.split()         #[READ or R/W, FILENAME, USERNAME, UPLOAD/DOWNLOAD]
+    access = inData[0]                #READ or R/W
     filename = inData[1]
     user = inData[2]
+    operation = inData[3]            #UPLOAD/DOWNLOAD
+    print(inData)
     
-    #check if access can be granted
-    if access is "READ":                    #always granted
-        conn.send(success.encode())
-    elif access is "RW":
-        if isLocked(filename, user):
-            conn.send(failure.encode())     #file was locked by different user
+    #UPLOAD OPERATIONS
+    if operation is UPLOAD and access is read_write:    #read operation not valid for uploads
+        print("UPLOAD OPERATION..")
+        if isLocked(filename):
+            print("LOCKED FILE..")
+            index = locked_files.index(filename)
+            if locked_by[index] is user:            
+                locked_files.pop(index)                #remove the lock from earlier
+                locked_by.pop(index)
+                conn.send(success.encode())
+            else:                                    
+                conn.send(failure.encode())            #file locked by different user
         else:
-            #lock the file for this user now
+            conn.send(success.encode())        #lock not needed
+    #DOWNLOAD OPERATIONS
+    elif operation is DOWNLOAD:
+        print("-DOWNLOAD OPERATION..")
+        if operation is read_only:
             conn.send(success.encode())
-            locked_files.append(filename)           #add lock to this user, THREAD SAFEYT NEEDED!!
-            locked_by.append(user)
+        elif operation is read_write:
+            if isLocked(filename):
+                print("LOCKED FILE..")
+                conn.send(failure.encode())        #access not granted for writing
+            else:
+                locked_files.append(filename)                #add the lock for later writing
+                locked_by.pop(user)
+                conn.send(success.encode())
+    else:
+        print("UNKNOWN OPERATION: *" + operation + "..")
+        print("SHOULD BE:", UPLOAD, "or", DOWNLOAD)
+        conn.send(failure.encode())        #code didn't match
     
+    print("session ended..\n\n")
     conn.close()
     
     

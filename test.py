@@ -13,20 +13,12 @@ def stringFileList (directory):
         
     return file_string
 
- 
-serv_files = []
+lock_port = 8012
+host = socket.gethostname()
+lock_sock = socket.socket()        
+lock_sock.connect((host, lock_port))
 
-files = stringFileList(file_directory1)
-files = files.split()
-serv_files.append(files)
+message = "READ file.txt ferdia DOWNLOAD"
+lock_sock.send(message.encode())
 
-files = stringFileList(file_directory2)
-files = files.split()
-serv_files.append(files)
-
-print(serv_files)
-
-if "server1_txt.txt" in serv_files[0]:
-    print("SUCCESS!")
-else:
-    print("FAILURE")
+print(lock_sock.recv(1024).decode())
