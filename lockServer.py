@@ -33,6 +33,8 @@ def timeoutLock():
 #thread.start_new_thread(timeoutLock, ())
     
 #******main*********
+print("LOCK SERVER RUNNING...")
+
 while True:
     print("waiting for connection...")
     conn, addr = sock.accept()

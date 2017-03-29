@@ -20,7 +20,8 @@ def authentication(newUser):
     return False
     
 
-#main
+#**********main***********
+print("AUTHENTICATION SERVER running...")
 while True:
     print("Waiting for connection...")
     conn, addr = sock.accept()

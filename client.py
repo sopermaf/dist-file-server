@@ -18,7 +18,6 @@ def uploadFile(fileName, sock):
         sock.send(out)
         out = f.read(1024)
     f.close()
-    print ("File Uploaded")
 
 def downloadFile(fileName, sock): 
     f = open(fileName,'wb')
@@ -27,7 +26,8 @@ def downloadFile(fileName, sock):
         f.write(incoming)
         incoming = sock.recv(1024)
     f.close()
-    print ("File Downloaded")
+    
+print("CLIENT initiated..\n\n")
     
 #AUTHENTICATION SERVER COMMUNICATION
 auth_sock = socket.socket()        
@@ -41,69 +41,79 @@ print("Authentication Status:", authentication)
 auth_sock.close()
 
 #DIRECTORY SERVER COMMUNICATION
-directory_sock = socket.socket()                    
-directory_sock.connect((host, directory_port))     #connect to the directory server
+if "509" not in authentication:
+    directory_sock = socket.socket()                    
+    directory_sock.connect((host, directory_port))     #connect to the directory server
 
-direc_files = directory_sock.recv(1024).decode()   #get password from auth server
-print(direc_files)
-fileName = input("Enter File Wanted(enter new file name and extension if new upload): ")
+    direc_files = directory_sock.recv(1024).decode()   #get the list of files
+    print(direc_files)                                 #print the file list
+    fileName = input("Enter file name and extension(example.txt): ")
 
-directory_sock.send(fileName.encode())
-port_required = directory_sock.recv(1024).decode()
-file_port = int(port_required)
+    directory_sock.send(fileName.encode())
+    port_required = directory_sock.recv(1024).decode()
+    file_port = int(port_required)
 
-print("Port with file:", port_required)
-directory_sock.close()
+    #print("Port with file:", port_required)
+    directory_sock.close()
 
-#LOCK SERVER COMMUNICATION
-host = socket.gethostname()
-lock_sock = socket.socket()        
-lock_sock.connect((host, lock_port))
+    #LOCK SERVER COMMUNICATION
+    host = socket.gethostname()
+    lock_sock = socket.socket()        
+    lock_sock.connect((host, lock_port))
 
-access_request = input("Enter Access Required (READ or R/W):")
-operation_request = input("Enter Operation (UPLOAD/DOWNLOAD): ")
+    access_request = input("Enter Access Required (READ or R/W):")
+    operation_request = input("Enter Operation (UPLOAD/DOWNLOAD): ")
 
-lock_request = access + " " + fileName + " " username " " + operation_request"
-lock_sock.send(message.encode())
-response = lock_sock.recv(1024).decode()
+    lock_request = access_request + " " + fileName + " " + username + " " + operation_request
+    lock_sock.send(lock_request.encode())
+    lock_status = lock_sock.recv(1024).decode()
 
-print("Response: ")
-lock_sock.close()
+    print("Lock Server Response:", lock_status, "\n")
+    lock_sock.close()
 
-#FILE SERVER COMMUNICATION
-file_sock = socket.socket()
-file_sock.connect((host, file_port))     #change connection to file server
+    #FILE SERVER COMMUNICATION
+    file_sock = socket.socket()
+    file_sock.connect((host, file_port))     #change connection to file server
 
-file_sock.send(authentication.encode())
-auth_confirmation = file_sock.recv(1024).decode()
-print(auth_confirmation)         
+    file_sock.send(authentication.encode())
+    auth_confirmation = file_sock.recv(1024).decode()
+    #print(auth_confirmation)         
 
-if "509" not in auth_confirmation:          #autho approved
-    
-    request_complete = False
-    while not request_complete:             #so user can keep listing the files
-        choice = input("ENTER CHOICE: ")
-        file_sock.send(choice.encode())
-        choice = choice.split()
-        choice_type = choice[0]
+    if "DENIED" not in lock_status:          #autho approved
         
-        if choice_type == "DOWNLOAD":
-            downloadFile(file_extension + choice[1], file_sock)
-            #recv_timeout(file_extension + choice[1], file_sock)
-            print("FILE DOWNLOADED\n")
-            request_complete = True
-        elif choice_type == "UPLOAD":
-            uploadFile(file_extension + choice[1], file_sock)
-            print("FILE UPLOADED\n")
-            request_complete = True
-        elif choice_type == "LIST":
-            files_available = file_sock.recv(2048).decode()
-            print("FILE LIST:")
-            print(files_available)
-        else:
-            print("ERROR: REQUEST DIDN'T MATCH PATTERN...")
-            request_complete = TRUE
-            break
+        request_complete = False
+        while not request_complete:             #so user can keep listing the files
+            #choice = input("ENTER CHOICE: ")
+            file_serv_request = operation_request + " " + fileName
+            file_sock.send(file_serv_request.encode())
+            # choice = choice.split()
+            # choice_type = choice[0]
+            
+            if operation_request == "DOWNLOAD":
+                downloadFile(file_extension + fileName, file_sock)
+                #recv_timeout(file_extension + choice[1], file_sock)
+                print("FILE DOWNLOADED\n")
+                request_complete = True
+            elif operation_request == "UPLOAD":
+                confirm = file_sock.recv(1024)
+                print(confirm.decode())
+                uploadFile(file_extension + fileName, file_sock)
+                print("FILE UPLOADED\n")
+                request_complete = True
+            elif operation_request == "LIST":
+                files_available = file_sock.recv(2048).decode()
+                print("FILE LIST:")
+                print(files_available)
+            else:
+                print("ERROR: REQUEST DIDN'T MATCH PATTERN...")
+                request_complete = TRUE
+                break
+    else:
+        print(operation_request, ":", access_request ,"access denied to ", fileName)
     
-file_sock.close()                     # Close the socket when done
+    file_sock.close()    # Close the socket when done
+else:
+    print("authentication error: user", username , "not found")
+    
+
 print("Client Terminated")

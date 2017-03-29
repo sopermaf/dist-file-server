@@ -95,8 +95,6 @@ def newClient(conn):
     if not isAuthenticated(authentication):
         msg = "509: No Authentication.."
         conn.send(msg.encode())                          #inform client of error
-    
-    #main processing
     else:
         msg = "Authentication Confirmed..\nSend Request(UPLOAD, DOWNLOAD, LIST) and filename with extension..."
         conn.send(msg.encode())
@@ -108,8 +106,10 @@ def newClient(conn):
             indata = conn.recv(1024).decode()
             indata = indata.split()
             requestOperation = indata[0]
+            print("Request is", indata)
             
             if requestOperation == "UPLOAD":
+                conn.send("confirm".encode())
                 downloadFile(conn, file_directory + indata[1])      #user upload = fileServer download
                 print("FILE DOWNLOADED")
                 request_complete = True
@@ -133,6 +133,7 @@ def newClient(conn):
 
 sock.listen()                 # Now wait for client connection.
 
+print("FILE SERVER", file_directory_choice, "RUNNNING")
 while True:
     print ("Waiting for connections...")
     new_connect, new_addr = sock.accept()

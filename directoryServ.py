@@ -67,7 +67,8 @@ def getFilePort(fileName):
         
     
     
-#main
+#**********main************
+print("DIRECTORY SERVER running...")
 while True:
     print("waiting for connection...")
     conn, addr = sock.accept()

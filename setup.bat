@@ -12,6 +12,7 @@ start python %message%authenticationServ.py
 start python %message%lockServer.py
 start python %message%directoryServ.py
 
+pause
+
 start python %message%client.py
 
-pause
