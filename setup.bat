@@ -9,6 +9,7 @@ start python %message%fileServer.py
 pause
 
 start python %message%authenticationServ.py
+start python %message%lockServer.py
 start python %message%directoryServ.py
 
 start python %message%client.py

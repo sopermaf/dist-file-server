@@ -62,7 +62,8 @@ def getFilePort(fileName):
         if fileName in fileList[x]:
             return 8000 + x + 1
     
-    return -1
+    print("NEW FILE..")
+    return 8001     #defaults to server 1 for new files
         
     
     
@@ -80,12 +81,7 @@ while True:
     
     #send file server number
     portRequired = getFilePort(fileWanted)
-    
-    if portRequired is -1:
-        print("Error occurred, closing connection..")
-        conn.close()
-        continue
-    
+        
     conn.send(str(portRequired).encode())
     
     conn.close()

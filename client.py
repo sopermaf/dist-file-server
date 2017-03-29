@@ -28,34 +28,6 @@ def downloadFile(fileName, sock):
         incoming = sock.recv(1024)
     f.close()
     print ("File Downloaded")
-
-def recv_timeout(fileName, the_socket,timeout=2):
-    the_socket = socket.socket()
-    
-    the_socket.setblocking(0)   #make socket non blocking
-    total_data = []
-    f = open(fileName,'wb')
-    begin=time.time()   #beginning tim
-    while True:
-        
-        if total_data and time.time()-begin > timeout:  #if you got some data, then break after timeout
-            break
-        elif time.time()-begin > timeout*2:
-            break #if you got no data at all, wait a little longer, twice the timeout
-        
-        try:       
-            data = the_socket.recv(1024)     #recv something
-            if data:
-                total_data.append(data)
-                f.write(data)
-                begin=time.time()   #change the beginning time for measurement
-            else:
-                time.sleep(0.1)     #sleep for sometime to indicate a gap
-        except:
-            pass    #null statement
-    
-    f.close()
-    print("finished recv")
     
 #AUTHENTICATION SERVER COMMUNICATION
 auth_sock = socket.socket()        
@@ -74,15 +46,29 @@ directory_sock.connect((host, directory_port))     #connect to the directory ser
 
 direc_files = directory_sock.recv(1024).decode()   #get password from auth server
 print(direc_files)
-fileName = input("Enter File Wanted(-1 to skip for uploads): ")
+fileName = input("Enter File Wanted(enter new file name and extension if new upload): ")
 
-if fileName is not "-1":
-    directory_sock.send(fileName.encode())
-    port_required = directory_sock.recv(1024).decode()
-    file_port = int(port_required)
+directory_sock.send(fileName.encode())
+port_required = directory_sock.recv(1024).decode()
+file_port = int(port_required)
 
 print("Port with file:", port_required)
 directory_sock.close()
+
+#LOCK SERVER COMMUNICATION
+host = socket.gethostname()
+lock_sock = socket.socket()        
+lock_sock.connect((host, lock_port))
+
+access_request = input("Enter Access Required (READ or R/W):")
+operation_request = input("Enter Operation (UPLOAD/DOWNLOAD): ")
+
+lock_request = access + " " + fileName + " " username " " + operation_request"
+lock_sock.send(message.encode())
+response = lock_sock.recv(1024).decode()
+
+print("Response: ")
+lock_sock.close()
 
 #FILE SERVER COMMUNICATION
 file_sock = socket.socket()
