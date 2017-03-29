@@ -18,7 +18,8 @@ host = socket.gethostname()
 lock_sock = socket.socket()        
 lock_sock.connect((host, lock_port))
 
-message = "READ file.txt ferdia DOWNLOAD"
+message = "R/W file.txt ferdid DOWNLOAD"
 lock_sock.send(message.encode())
+response = lock_sock.recv(1024).decode()
 
-print(lock_sock.recv(1024).decode())
+print(response)

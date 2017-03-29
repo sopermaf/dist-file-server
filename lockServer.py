@@ -29,7 +29,7 @@ def isLocked(filename):
 #removes lock after time elapsed
 def timeoutLock():
     pass
-
+    
 #thread.start_new_thread(timeoutLock, ())
     
 #******main*********
@@ -45,41 +45,56 @@ while True:
     filename = inData[1]
     user = inData[2]
     operation = inData[3]            #UPLOAD/DOWNLOAD
-    print(inData)
+    print("Data:", inData)
+    response = "RESPONSE ERROR"
     
     #UPLOAD OPERATIONS
-    if operation is UPLOAD and access is read_write:    #read operation not valid for uploads
+    if operation == UPLOAD and access == read_write:    #read operation not valid for uploads
         print("UPLOAD OPERATION..")
         if isLocked(filename):
-            print("LOCKED FILE..")
+            print("FILE HAS LOCK..")
             index = locked_files.index(filename)
-            if locked_by[index] is user:            
+            if locked_by[index] == user:            
                 locked_files.pop(index)                #remove the lock from earlier
                 locked_by.pop(index)
-                conn.send(success.encode())
+                response = success
             else:                                    
-                conn.send(failure.encode())            #file locked by different user
+                response = failure            #file locked by different user
         else:
-            conn.send(success.encode())        #lock not needed
+            response = success        #lock not needed
     #DOWNLOAD OPERATIONS
-    elif operation is DOWNLOAD:
+    elif operation == DOWNLOAD:
         print("-DOWNLOAD OPERATION..")
-        if operation is read_only:
+        if access == read_only:
             conn.send(success.encode())
-        elif operation is read_write:
+        elif access == read_write:
             if isLocked(filename):
-                print("LOCKED FILE..")
-                conn.send(failure.encode())        #access not granted for writing
+                print("FILE HAS LOCK..")
+                index = locked_files.index(filename)
+                if locked_by[index] == user:
+                    response = success
+                else:
+                    response = failure        #access not granted for writing
             else:
                 locked_files.append(filename)                #add the lock for later writing
-                locked_by.pop(user)
-                conn.send(success.encode())
+                locked_by.append(user)
+                response = success
+        else:
+            print("ACCESS ERROR:", operation)
     else:
         print("UNKNOWN OPERATION: *" + operation + "..")
         print("SHOULD BE:", UPLOAD, "or", DOWNLOAD)
-        conn.send(failure.encode())        #code didn't match
+        response = failure        #code didn't match
     
+    
+    conn.send(response.encode())    #send the user the status of their request
+    
+    #print the status of the locks
+    print("\n***FILES LOCKED***")
+    for x in range(0, len(locked_files)):
+        print("-File Locked:", locked_files[x], "User:", locked_by[x])
     print("session ended..\n\n")
+    
     conn.close()
     
     
